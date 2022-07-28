@@ -35,8 +35,6 @@ class AveragedTireStockViewSet(viewsets.ModelViewSet):
         if 'search_query' in request.data:
             search_query = request.data['search_query']
 
-            search_query_split = search_query.split(' ')
-
             brand_name = ''
             product_code = ''
 
