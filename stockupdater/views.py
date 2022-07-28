@@ -1,7 +1,7 @@
 from django.core.serializers import json
 
 from django.contrib.auth.models import User
-from django.db.models import Avg, Sum
+from django.db.models import Avg, Sum, Q
 from django.http import JsonResponse
 import ftplib
 from datetime import datetime
@@ -35,6 +35,8 @@ class AveragedTireStockViewSet(viewsets.ModelViewSet):
         if 'search_query' in request.data:
             search_query = request.data['search_query']
 
+            search_query_split = search_query.split(' ')
+
             brand_name = ''
             product_code = ''
 
@@ -48,8 +50,23 @@ class AveragedTireStockViewSet(viewsets.ModelViewSet):
                 pass
 
             if brand_name != '':
-                related_search_result = AveragedTireProductData.objects.filter(brand_name__icontains=brand_name,
-                                                                               product_code__icontains=product_code)
+                related_search_result = AveragedTireProductData.objects \
+                    .filter(brand_name__icontains=brand_name,
+                            product_code__icontains=product_code)
+
+                # In case the brand name has a space such as Mickey Thompson
+                if related_search_result.count() == 0:
+
+                    try:
+                        brand_name = search_query.split(' ')[0] + ' ' + search_query.split(' ')[1]
+                        related_search_result = AveragedTireProductData.objects.filter(brand_name__icontains=brand_name)
+                    except:
+                        pass
+                    try:
+                        product_code = search_query.split(' ')[2]
+                        related_search_result = related_search_result.filter(product_code__icontains=product_code)
+                    except:
+                        pass
 
                 related_search_result = related_search_result.order_by('id')[:10]
 
